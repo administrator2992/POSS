@@ -69,8 +69,8 @@ For kiosk applications like POSS, you may want to enforce landscape mode. Modify
 <resources>
     <string name="app_name">POSS</string>
     <string name="title_activity_main">POSS</string>
-    <string name="package_name">com.example.scanai</string>
-    <string name="custom_url_scheme">com.example.scanai</string>
+    <string name="package_name">com.example.poss</string>
+    <string name="custom_url_scheme">com.example.poss</string>
 </resources>
 ```
 
@@ -79,7 +79,7 @@ Then, in `android/app/src/main/AndroidManifest.xml`, set the screen orientation:
 ```xml
 <activity
     android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
-    android:name="com.example.scanai.MainActivity"
+    android:name="com.example.poss.MainActivity"
     android:label="@string/title_activity_main"
     android:theme="@style/AppTheme.NoActionBarLaunch"
     android:launchMode="singleTask"
@@ -93,7 +93,7 @@ Update `capacitor.config.json` for landscape mode:
 
 ```json
 {
-  "appId": "com.example.scanai",
+  "appId": "com.example.poss",
   "appName": "POSS",
   "webDir": "dist",
   "bundledWebRuntime": false,
