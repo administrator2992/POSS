@@ -63,7 +63,6 @@ This document summarizes all the changes made to implement database storage and 
 - Integrated with ApiService for broadcasting functionality
 
 ### 7. SalesScreen (`src/components/tablet/SalesScreen.tsx`)
-- Removed unused availableItems prop from ScanAIModal usage
 - Fixed component props to match interface
 
 ### 8. Package.json (`package.json`)
