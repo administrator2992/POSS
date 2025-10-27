@@ -62,19 +62,15 @@ This document summarizes all the changes made to implement database storage and 
 - Added manual sync button
 - Integrated with ApiService for broadcasting functionality
 
-### 7. ScanAIModal (`src/components/tablet/ScanAIModal.tsx`)
-- Removed unused availableItems prop
-- Fixed component props to match interface
-
-### 8. SalesScreen (`src/components/tablet/SalesScreen.tsx`)
+### 7. SalesScreen (`src/components/tablet/SalesScreen.tsx`)
 - Removed unused availableItems prop from ScanAIModal usage
 - Fixed component props to match interface
 
-### 9. Package.json (`package.json`)
+### 8. Package.json (`package.json`)
 - Added @capacitor/core and @capacitor/storage dependencies
 - Maintained existing scripts and configurations
 
-### 10. README.md (`README.md`)
+### 9. README.md (`README.md`)
 - Updated features list to include database and broadcasting
 - Added sections for database storage and network broadcasting
 - Updated project structure documentation
