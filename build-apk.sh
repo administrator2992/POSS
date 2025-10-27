@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# ScanAI KIOSK APK Build Script
+# POSS APK Build Script
 
-echo "Building ScanAI KIOSK for Android..."
+echo "Building POSS for Android..."
 
 # Check if node is installed
 if ! command -v node &> /dev/null

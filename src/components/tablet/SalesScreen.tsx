@@ -400,8 +400,6 @@ export function SalesScreen({ currentOrder, onOrderUpdate, onCheckout }: SalesSc
           onApply={applyDiscount}
         />
       )}
-
-      {/* Removed ScanAI modal */}
     </div>
   );
 }
