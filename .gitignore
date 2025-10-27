@@ -1,0 +1,123 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+.out/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Diagnostic reports
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Capacitor generated files
+capacitor.config.ts
+android/
+ios/
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android related
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+bin/
+gen/
+out/
+.local.properties
+proguard/
+proguard_logs/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# VS Code
+.vscode/
+
+# Temporary files
+.tmp/
+temp/
+*.tmp
+
+# Log files
+*.log
+
+# Secret files
+.secret
+*.jks
+local.properties
+
+# IDE specific files
+*.iml
+*.iws
+*.ipr
+
+# Backup files
+*.bak
+*.backup
+
+# Testing
+coverage/
+.nyc_output/
+
+# Typescript
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Yarn
+yarn-error.log
+.yarn-integrity
+.yarn-state.yml
+
+# secret
+.secret

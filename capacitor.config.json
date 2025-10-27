@@ -1,0 +1,8 @@
+{
+  "appId": "com.example.poss",
+  "appName": "POSS",
+  "webDir": "build",
+  "android": {
+    "orientation": "landscape"
+  }
+}
