@@ -3,6 +3,7 @@ import { Save, Store, Users, Bell, CreditCard, Printer, Database, Wifi, Share2, 
 import { toast } from 'sonner';
 import { apiService } from '../../services/ApiService';
 import { dbService } from '../../services/DatabaseService';
+import { checkDanaBackend } from '../../services/DanaService';
 
 interface BusinessSettings {
   storeName: string;
@@ -25,6 +26,10 @@ interface PaymentSettings {
   creditCardEnabled: boolean;
   digitalWalletEnabled: boolean;
   defaultPaymentMethod: string;
+  danaEnabled: boolean;
+  danaBackendUrl: string;
+  danaEnvironment: 'sandbox' | 'production';
+  danaPartnerId: string;
 }
 
 interface PrinterSettings {
@@ -44,7 +49,7 @@ interface NetworkSettings {
 export function Settings() {
   const [activeTab, setActiveTab] = useState('business');
   const [businessSettings, setBusinessSettings] = useState<BusinessSettings>({
-    storeName: 'Toko Kue',
+    storeName: 'Toko Retail',
     storeAddress: 'Jl. Merdeka No. 123, Jakarta',
     storePhone: '+62 21 1234 5678',
     taxRate: 10,
@@ -64,6 +69,10 @@ export function Settings() {
     creditCardEnabled: true,
     digitalWalletEnabled: true,
     defaultPaymentMethod: 'cash',
+    danaEnabled: false,
+    danaBackendUrl: 'http://localhost:4000',
+    danaEnvironment: 'sandbox',
+    danaPartnerId: '',
   });
 
   const [printerSettings, setPrinterSettings] = useState<PrinterSettings>({
@@ -120,6 +129,28 @@ export function Settings() {
 
   const handlePaymentSettingsChange = (field: keyof PaymentSettings, value: string | boolean) => {
     setPaymentSettings(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleDanaToggle = async (checked: boolean) => {
+    if (checked) {
+      toast.loading('Menghubungkan ke DANA backend...', { id: 'dana-connect' });
+      try {
+        const result = await checkDanaBackend();
+        if (result.ok) {
+          setPaymentSettings(prev => ({ ...prev, danaEnabled: true }));
+          toast.success('DANA QRIS berhasil diaktifkan dan terhubung ke backend!', { id: 'dana-connect' });
+        } else {
+          setPaymentSettings(prev => ({ ...prev, danaEnabled: false }));
+          toast.error(`Gagal mengaktifkan DANA QRIS: ${result.error || 'Backend tidak merespon'}`, { id: 'dana-connect' });
+        }
+      } catch (error) {
+        setPaymentSettings(prev => ({ ...prev, danaEnabled: false }));
+        toast.error('Gagal terhubung ke backend DANA. Periksa koneksi internet / .env backend Anda.', { id: 'dana-connect' });
+      }
+    } else {
+      setPaymentSettings(prev => ({ ...prev, danaEnabled: false }));
+      toast.info('DANA QRIS dinonaktifkan');
+    }
   };
 
   const handlePrinterSettingsChange = (field: keyof PrinterSettings, value: string | boolean) => {
@@ -184,8 +215,6 @@ export function Settings() {
     { id: 'notifications', name: 'Notifications', icon: Bell },
     { id: 'payments', name: 'Payments', icon: CreditCard },
     { id: 'printer', name: 'Printer', icon: Printer },
-    { id: 'network', name: 'Network', icon: Wifi },
-    { id: 'users', name: 'Users', icon: Users },
   ];
 
   return (
@@ -410,6 +439,7 @@ export function Settings() {
               <div className="space-y-6">
                 <h2 className="text-lg font-medium text-gray-900">Metode Pembayaran</h2>
                 <div className="space-y-4">
+                  {/* Tunai */}
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div>
                       <h3 className="font-medium text-gray-900">Tunai</h3>
@@ -425,39 +455,25 @@ export function Settings() {
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
                     </label>
                   </div>
-                
+
+                  {/* DANA QRIS */}
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div>
-                      <h3 className="font-medium text-gray-900">Kartu Kredit/Debit</h3>
-                      <p className="text-sm text-gray-600">Terima pembayaran kartu</p>
+                      <h3 className="font-medium text-gray-900">DANA QRIS</h3>
+                      <p className="text-sm text-gray-600">Terima pembayaran QRIS menggunakan DANA (Koneksi Otomatis)</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={paymentSettings.creditCardEnabled}
-                        onChange={(e) => handlePaymentSettingsChange('creditCardEnabled', e.target.checked)}
+                        checked={paymentSettings.danaEnabled}
+                        onChange={(e) => handleDanaToggle(e.target.checked)}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
                     </label>
                   </div>
                 
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <h3 className="font-medium text-gray-900">Dompet Digital</h3>
-                      <p className="text-sm text-gray-600">Terima pembayaran digital (OVO, GoPay, dll.)</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={paymentSettings.digitalWalletEnabled}
-                        onChange={(e) => handlePaymentSettingsChange('digitalWalletEnabled', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                    </label>
-                  </div>
-                
+                  {/* Default Payment Method */}
                   <div className="pt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Metode Pembayaran Default
@@ -468,8 +484,7 @@ export function Settings() {
                       className="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     >
                       <option value="cash">Tunai</option>
-                      <option value="card">Kartu Kredit/Debit</option>
-                      <option value="digital">Dompet Digital</option>
+                      <option value="qris">DANA QRIS</option>
                     </select>
                   </div>
                 </div>
@@ -529,92 +544,6 @@ export function Settings() {
                       </div>
                     </>
                   )}
-                </div>
-              </div>
-            )}
-
-            {/* Network Settings */}
-            {activeTab === 'network' && (
-              <div className="space-y-6">
-                <h2 className="text-lg font-medium text-gray-900">Konfigurasi Jaringan</h2>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <h3 className="font-medium text-gray-900">Aktifkan Penyiaran Data</h3>
-                      <p className="text-sm text-gray-600">Siarkan data ke perangkat lain di jaringan</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={networkSettings.enableBroadcasting}
-                        onChange={(e) => handleNetworkSettingsChange('enableBroadcasting', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                    </label>
-                  </div>
-                
-                  {networkSettings.enableBroadcasting && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Interval Penyiaran (detik)
-                        </label>
-                        <input
-                          type="number"
-                          min="10"
-                          max="300"
-                          value={networkSettings.broadcastInterval}
-                          onChange={(e) => handleNetworkSettingsChange('broadcastInterval', parseInt(e.target.value) || 30)}
-                          className="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        />
-                        <p className="text-sm text-gray-500 mt-1">Seberapa sering menyiarakan data (10-300 detik)</p>
-                      </div>
-                    
-                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div>
-                          <h3 className="font-medium text-gray-900">Sinkronisasi Otomatis</h3>
-                          <p className="text-sm text-gray-600">Secara otomatis sinkronkan data saat menyimpan pengaturan</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={networkSettings.autoSync}
-                            onChange={(e) => handleNetworkSettingsChange('autoSync', e.target.checked)}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                        </label>
-                      </div>
-                    </>
-                  )}
-                
-                  <div className="pt-4">
-                    <button
-                      onClick={handleManualSync}
-                      disabled={!networkSettings.enableBroadcasting}
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Share2 className="w-4 h-4" />
-                      Sinkronkan Data Sekarang
-                    </button>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Siarkan semua data ke perangkat jaringan secara manual
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Users Settings */}
-            {activeTab === 'users' && (
-              <div className="space-y-6">
-                <h2 className="text-lg font-medium text-gray-900">Manajemen Pengguna</h2>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <p className="text-orange-800">
-                    Manajemen pengguna tersedia di bagian Manajemen Karyawan. 
-                    Silakan navigasi ke halaman Manajemen Karyawan untuk menambah atau mengedit pengguna.
-                  </p>
                 </div>
               </div>
             )}

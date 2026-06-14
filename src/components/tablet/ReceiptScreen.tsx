@@ -73,7 +73,8 @@ export function ReceiptScreen({ order, onNewOrder, cashierName }: ReceiptScreenP
         tax: order.tax,
         total: order.total,
         timestamp: new Date().toISOString(),
-        cashier: cashierName
+        cashier: cashierName,
+        paymentMethod: order.paymentMethod || 'Tunai'
       };
       
       await dbService.addTransaction(newTransaction);
@@ -102,8 +103,8 @@ export function ReceiptScreen({ order, onNewOrder, cashierName }: ReceiptScreenP
       // Create receipt content
       const receiptContent = `
         <div class="header">
-          <h2>Toko Kue</h2>
-          <p>Jl. Raya Bakery No. 123</p>
+          <h2>Toko Retail</h2>
+          <p>Jl. Merdeka No. 123</p>
           <p>Tel: (021) 123-4567</p>
           <p>${currentDate}</p>
           ${transactionId ? `<p>ID Transaksi: ${transactionId}</p>` : ''}
@@ -183,8 +184,8 @@ export function ReceiptScreen({ order, onNewOrder, cashierName }: ReceiptScreenP
             <div className="overflow-auto flex-1 min-h-0">
               {/* Store Info */}
               <div className="text-center mb-3">
-                <h2 className="text-gray-900 mb-1 text-base">Toko Kue</h2>
-                <p className="text-gray-600 text-xs">Jl. Raya Bakery No. 123</p>
+                <h2 className="text-gray-900 mb-1 text-base">Toko Retail</h2>
+                <p className="text-gray-600 text-xs">Jl. Merdeka No. 123</p>
                 <p className="text-gray-600 text-xs">Tel: (021) 123-4567</p>
                 <p className="text-gray-600 mt-1 text-xs">{currentDate}</p>
                 {transactionId && (

@@ -1,6 +1,8 @@
-import { Storage } from '@capacitor/storage';
+import { supabase } from '../utils/supabase';
+import pako from 'pako';
 
-// Define our data models
+// ─── Data Models ─────────────────────────────────────────────────────────────
+
 export interface Employee {
   id: string;
   name: string;
@@ -18,6 +20,9 @@ export interface InventoryItem {
   category: string;
   stock: number;
   unit: string;
+  price: number;
+  cost: number;
+  available?: boolean;
   lowStockThreshold: number;
   lastUpdated: string;
 }
@@ -39,19 +44,100 @@ export interface Transaction {
   total: number;
   timestamp: string;
   cashier: string;
+  paymentMethod?: string;
 }
 
-class DatabaseService {
-  private EMPLOYEES_KEY = 'employees';
-  private INVENTORY_KEY = 'inventory';
-  private TRANSACTIONS_KEY = 'transactions';
-  private SETTINGS_KEY = 'settings';
+// ─── Compression Helpers ─────────────────────────────────────────────────────
 
-  // Employee methods
+/**
+ * Compresses a JavaScript object into a base64-encoded string
+ * using pako (zlib/deflate) for efficient binary compression.
+ */
+function compress<T>(data: T): string {
+  const json = JSON.stringify(data);
+  const compressed = pako.deflate(json);
+  let binary = '';
+  for (let i = 0; i < compressed.byteLength; i++) {
+    binary += String.fromCharCode(compressed[i]);
+  }
+  return btoa(binary);
+}
+
+/**
+ * Decompresses a base64-encoded compressed string back into a JavaScript object.
+ */
+function decompress<T>(encoded: string): T {
+  const binary = atob(encoded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  const decompressed = pako.inflate(bytes, { to: 'string' });
+  return JSON.parse(decompressed) as T;
+}
+
+// ─── Supabase Row Shape ──────────────────────────────────────────────────────
+
+interface DataRow {
+  id: number;
+  data: string;       // base64-encoded compressed JSON
+  updated_at: string;
+}
+
+// ─── Generic CRUD helpers ────────────────────────────────────────────────────
+
+async function readBlob<T>(table: string, emptyValue: T): Promise<T> {
+  const { data, error } = await supabase
+    .from(table)
+    .select('data')
+    .eq('id', 1)
+    .maybeSingle<DataRow>();
+
+  if (error) {
+    console.error(`Error reading ${table}:`, error);
+    return emptyValue;
+  }
+
+  if (!data || !data.data) {
+    return emptyValue;
+  }
+
+  try {
+    return decompress<T>(data.data);
+  } catch (err) {
+    console.error(`Error decompressing ${table}:`, err);
+    return emptyValue;
+  }
+}
+
+async function writeBlob<T>(table: string, payload: T): Promise<void> {
+  const encoded = compress(payload);
+
+  const { error } = await supabase
+    .from(table)
+    .upsert({ id: 1, data: encoded, updated_at: new Date().toISOString() });
+
+  if (error) {
+    console.error(`Error writing ${table}:`, error);
+  }
+}
+
+// ─── Supabase Table Names ────────────────────────────────────────────────────
+
+const EMPLOYEES_TABLE     = 'pos_employees';
+const INVENTORY_TABLE     = 'pos_inventory';
+const TRANSACTIONS_TABLE  = 'pos_transactions';
+const SETTINGS_TABLE      = 'pos_settings';
+
+// ─── Database Service ────────────────────────────────────────────────────────
+
+class DatabaseService {
+
+  // ── Employees ──────────────────────────────────────────────────────────────
+
   async getEmployees(): Promise<Employee[]> {
     try {
-      const { value } = await Storage.get({ key: this.EMPLOYEES_KEY });
-      return value ? JSON.parse(value) : [];
+      return await readBlob<Employee[]>(EMPLOYEES_TABLE, []);
     } catch (error) {
       console.error('Error getting employees:', error);
       return [];
@@ -60,10 +146,7 @@ class DatabaseService {
 
   async saveEmployees(employees: Employee[]): Promise<void> {
     try {
-      await Storage.set({
-        key: this.EMPLOYEES_KEY,
-        value: JSON.stringify(employees)
-      });
+      await writeBlob(EMPLOYEES_TABLE, employees);
     } catch (error) {
       console.error('Error saving employees:', error);
     }
@@ -90,11 +173,11 @@ class DatabaseService {
     await this.saveEmployees(filtered);
   }
 
-  // Inventory methods
+  // ── Inventory ──────────────────────────────────────────────────────────────
+
   async getInventory(): Promise<InventoryItem[]> {
     try {
-      const { value } = await Storage.get({ key: this.INVENTORY_KEY });
-      return value ? JSON.parse(value) : [];
+      return await readBlob<InventoryItem[]>(INVENTORY_TABLE, []);
     } catch (error) {
       console.error('Error getting inventory:', error);
       return [];
@@ -103,10 +186,7 @@ class DatabaseService {
 
   async saveInventory(inventory: InventoryItem[]): Promise<void> {
     try {
-      await Storage.set({
-        key: this.INVENTORY_KEY,
-        value: JSON.stringify(inventory)
-      });
+      await writeBlob(INVENTORY_TABLE, inventory);
     } catch (error) {
       console.error('Error saving inventory:', error);
     }
@@ -133,11 +213,11 @@ class DatabaseService {
     await this.saveInventory(filtered);
   }
 
-  // Transaction methods
+  // ── Transactions ───────────────────────────────────────────────────────────
+
   async getTransactions(): Promise<Transaction[]> {
     try {
-      const { value } = await Storage.get({ key: this.TRANSACTIONS_KEY });
-      return value ? JSON.parse(value) : [];
+      return await readBlob<Transaction[]>(TRANSACTIONS_TABLE, []);
     } catch (error) {
       console.error('Error getting transactions:', error);
       return [];
@@ -146,10 +226,7 @@ class DatabaseService {
 
   async saveTransactions(transactions: Transaction[]): Promise<void> {
     try {
-      await Storage.set({
-        key: this.TRANSACTIONS_KEY,
-        value: JSON.stringify(transactions)
-      });
+      await writeBlob(TRANSACTIONS_TABLE, transactions);
     } catch (error) {
       console.error('Error saving transactions:', error);
     }
@@ -167,11 +244,11 @@ class DatabaseService {
     await this.saveTransactions(filtered);
   }
 
-  // Settings methods
+  // ── Settings ───────────────────────────────────────────────────────────────
+
   async getSettings(): Promise<any> {
     try {
-      const { value } = await Storage.get({ key: this.SETTINGS_KEY });
-      return value ? JSON.parse(value) : {};
+      return await readBlob<any>(SETTINGS_TABLE, {});
     } catch (error) {
       console.error('Error getting settings:', error);
       return {};
@@ -180,43 +257,9 @@ class DatabaseService {
 
   async saveSettings(settings: any): Promise<void> {
     try {
-      await Storage.set({
-        key: this.SETTINGS_KEY,
-        value: JSON.stringify(settings)
-      });
+      await writeBlob(SETTINGS_TABLE, settings);
     } catch (error) {
       console.error('Error saving settings:', error);
-    }
-  }
-
-  // Initialize with default data if empty
-  async initializeDefaultData(): Promise<void> {
-    const employees = await this.getEmployees();
-    if (employees.length === 0) {
-      const defaultEmployees: Employee[] = [
-        { id: '1', name: 'Sarah Johnson', pin: '1234', role: 'manager', position: 'Manager', phone: '+62 812 3456 7890', hourlyRate: 25000, isActive: true },
-        { id: '2', name: 'Mike Chen', pin: '5678', role: 'cashier', position: 'Cashier', phone: '+62 813 4567 8901', hourlyRate: 18000, isActive: true },
-      ];
-      await this.saveEmployees(defaultEmployees);
-    }
-
-    const inventory = await this.getInventory();
-    if (inventory.length === 0) {
-      const defaultInventory: InventoryItem[] = [
-        { id: '1', name: 'Kue Lapis', category: 'Kue', stock: 45, unit: 'pcs', lowStockThreshold: 20, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '2', name: 'Kue Mangkok', category: 'Kue', stock: 15, unit: 'pcs', lowStockThreshold: 20, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '3', name: 'Lemper', category: 'Kue', stock: 35, unit: 'pcs', lowStockThreshold: 25, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '4', name: 'Pastel', category: 'Kue', stock: 18, unit: 'pcs', lowStockThreshold: 15, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '5', name: 'Wajik', category: 'Kue', stock: 12, unit: 'pcs', lowStockThreshold: 10, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '6', name: 'Bacang Ayam', category: 'Kue', stock: 25, unit: 'pcs', lowStockThreshold: 10, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '7', name: 'Bacang T. Asin', category: 'Kue', stock: 8, unit: 'pcs', lowStockThreshold: 15, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '8', name: 'Bakwan', category: 'Kue', stock: 24, unit: 'pcs', lowStockThreshold: 20, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '9', name: 'Bakwan Udang', category: 'Kue', stock: 18, unit: 'pcs', lowStockThreshold: 15, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '10', name: 'Kue Ku', category: 'Kue', stock: 9, unit: 'pcs', lowStockThreshold: 8, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '11', name: 'Paketku', category: 'Kue', stock: 450, unit: 'pcs', lowStockThreshold: 200, lastUpdated: new Date().toISOString().split('T')[0] },
-        { id: '12', name: 'Risoles', category: 'Kue', stock: 180, unit: 'pcs', lowStockThreshold: 200, lastUpdated: new Date().toISOString().split('T')[0] },
-      ];
-      await this.saveInventory(defaultInventory);
     }
   }
 }

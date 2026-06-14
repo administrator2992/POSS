@@ -1,39 +1,35 @@
-import { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Cake } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Search, Edit, Trash2, Package } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface MenuItem {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  cost: number;
-  available: boolean;
-}
-
-// Generate random prices between 5000 and 25000 Rupiah
-const generatePrice = () => Math.floor(Math.random() * (25000 - 5000 + 1) + 5000);
-
-const INITIAL_MENU: MenuItem[] = [
-  { id: '1', name: 'Kue Lapis', category: 'Kue', price: generatePrice(), cost: 2000, available: true },
-  { id: '2', name: 'Kue Mangkok', category: 'Kue', price: generatePrice(), cost: 1500, available: true },
-  { id: '3', name: 'Lemper', category: 'Kue', price: generatePrice(), cost: 1200, available: true },
-  { id: '4', name: 'Pastel', category: 'Kue', price: generatePrice(), cost: 1800, available: true },
-  { id: '5', name: 'Wajik', category: 'Kue', price: generatePrice(), cost: 1000, available: true },
-  { id: '6', name: 'Bacang Ayam', category: 'Kue', price: generatePrice(), cost: 2500, available: true },
-  { id: '7', name: 'Bacang T. Asin', category: 'Kue', price: generatePrice(), cost: 2000, available: true },
-  { id: '8', name: 'Bakwan', category: 'Gorengan', price: generatePrice(), cost: 800, available: true },
-  { id: '9', name: 'Bakwan Udang', category: 'Gorengan', price: generatePrice(), cost: 1500, available: true },
-  { id: '10', name: 'Kue Ku', category: 'Kue', price: generatePrice(), cost: 1200, available: true },
-  { id: '11', name: 'Paketku', category: 'Paket', price: generatePrice(), cost: 3000, available: true },
-  { id: '12', name: 'Risoles', category: 'Gorengan', price: generatePrice(), cost: 1000, available: true },
-];
+import { dbService, InventoryItem } from '../../services/DatabaseService';
 
 export function MenuManagement() {
-  const [menu, setMenu] = useState<MenuItem[]>(INITIAL_MENU);
+  const [menu, setMenu] = useState<InventoryItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+
+  // Form states for Add/Edit
+  const [formData, setFormData] = useState({
+    name: '',
+    category: 'Umum',
+    price: 0,
+    cost: 0,
+  });
+
+  const loadMenu = async () => {
+    try {
+      const storedInventory = await dbService.getInventory();
+      setMenu(storedInventory);
+    } catch (error) {
+      console.error('Error loading menu:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadMenu();
+  }, []);
 
   const categories = ['all', ...Array.from(new Set(menu.map(item => item.category)))];
 
@@ -43,22 +39,93 @@ export function MenuManagement() {
     return matchesSearch && matchesCategory;
   });
 
-  const toggleAvailability = (id: string) => {
-    setMenu(menu.map(item =>
-      item.id === id ? { ...item, available: !item.available } : item
-    ));
-    toast.success('Item availability updated');
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus item ini?')) {
-      setMenu(menu.filter(item => item.id !== id));
-      toast.success('Item deleted successfully');
+  const toggleAvailability = async (id: string) => {
+    const item = menu.find(i => i.id === id);
+    if (item) {
+      const updatedItem = {
+        ...item,
+        available: item.available === false ? true : false, // default is true if undefined
+        lastUpdated: new Date().toISOString().split('T')[0]
+      };
+      await dbService.updateInventoryItem(updatedItem);
+      await loadMenu();
+      toast.success('Ketersediaan item berhasil diperbarui');
     }
   };
 
-  const handleEdit = (id: string) => {
-    toast.success('Item updated successfully');
+  const handleDelete = async (id: string) => {
+    if (confirm('Apakah Anda yakin ingin menghapus item ini?')) {
+      await dbService.deleteInventoryItem(id);
+      await loadMenu();
+      toast.success('Item berhasil dihapus');
+    }
+  };
+
+  const handleOpenAddModal = () => {
+    setEditingItem(null);
+    setFormData({
+      name: '',
+      category: 'Umum',
+      price: 0,
+      cost: 0,
+    });
+    setShowAddModal(true);
+  };
+
+  const handleOpenEditModal = (item: InventoryItem) => {
+    setEditingItem(item);
+    setFormData({
+      name: item.name,
+      category: item.category,
+      price: item.price || 0,
+      cost: item.cost || 0,
+    });
+    setShowAddModal(true);
+  };
+
+  const handleSaveItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      toast.error('Nama harus diisi');
+      return;
+    }
+
+    try {
+      if (editingItem) {
+        // Edit existing
+        const updatedItem: InventoryItem = {
+          ...editingItem,
+          name: formData.name.trim(),
+          category: formData.category,
+          price: formData.price,
+          cost: formData.cost,
+          lastUpdated: new Date().toISOString().split('T')[0]
+        };
+        await dbService.updateInventoryItem(updatedItem);
+        toast.success('Item berhasil diperbarui');
+      } else {
+        // Add new
+        const newItem: InventoryItem = {
+          id: Date.now().toString(),
+          name: formData.name.trim(),
+          category: formData.category,
+          price: formData.price,
+          cost: formData.cost,
+          stock: 0, // default stock
+          unit: 'pcs',
+          available: true,
+          lowStockThreshold: 10,
+          lastUpdated: new Date().toISOString().split('T')[0]
+        };
+        await dbService.addInventoryItem(newItem);
+        toast.success('Item berhasil ditambahkan');
+      }
+      setShowAddModal(false);
+      await loadMenu();
+    } catch (error) {
+      console.error('Error saving item:', error);
+      toast.error('Gagal menyimpan item');
+    }
   };
 
   const formatRupiah = (amount: number) => {
@@ -77,10 +144,7 @@ export function MenuManagement() {
             <p className="text-gray-600">Buat dan edit item menu, kategori, dan harga</p>
           </div>
           <button
-            onClick={() => {
-              setShowAddModal(true);
-              toast.success('Item berhasil ditambahkan');
-            }}
+            onClick={handleOpenAddModal}
             className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -96,16 +160,18 @@ export function MenuManagement() {
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="text-gray-600 mb-2">Tersedia</div>
-            <div className="text-orange-600">{menu.filter(item => item.available).length}</div>
+            <div className="text-orange-600">{menu.filter(item => item.available !== false).length}</div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="text-gray-600 mb-2">Tidak Tersedia</div>
-            <div className="text-red-600">{menu.filter(item => !item.available).length}</div>
+            <div className="text-red-600">{menu.filter(item => item.available === false).length}</div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="text-gray-600 mb-2">Harga Rata-rata</div>
             <div className="text-gray-900">
-              {formatRupiah(menu.reduce((sum, item) => sum + item.price, 0) / menu.length)}
+              {menu.length > 0
+                ? formatRupiah(menu.reduce((sum, item) => sum + (item.price || 0), 0) / menu.length)
+                : 'Rp 0'}
             </div>
           </div>
         </div>
@@ -141,99 +207,165 @@ export function MenuManagement() {
           </div>
         </div>
 
-        {/* Menu Items */}
-        <div className="grid grid-cols-2 gap-6">
-          {filteredMenu.map((item) => (
-            <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-start gap-4 flex-1">
-                  <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Cake className="w-8 h-8 text-orange-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-gray-900 mb-1">{item.name}</h3>
-                        <p className="text-gray-600">{item.category}</p>
-                      </div>
-                      {item.available ? (
-                        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
-                          Tersedia
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full">
-                          Tidak Tersedia
-                        </span>
-                      )}
+        {/* Menu Items Grid */}
+        {filteredMenu.length > 0 ? (
+          <div className="grid grid-cols-2 gap-6">
+            {filteredMenu.map((item) => (
+              <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <Package className="w-8 h-8 text-orange-600" />
                     </div>
-                    <div className="grid grid-cols-3 gap-4 mt-4">
-                      <div>
-                        <div className="text-gray-600 mb-1">Harga</div>
-                        <div className="text-orange-600">
-                          {formatRupiah(item.price)}
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="text-gray-900 mb-1">{item.name}</h3>
+                          <p className="text-gray-600">{item.category}</p>
                         </div>
+                        {item.available !== false ? (
+                          <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
+                            Tersedia
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full">
+                            Tidak Tersedia
+                          </span>
+                        )}
                       </div>
-                      <div>
-                        <div className="text-gray-600 mb-1">Biaya</div>
-                        <div className="text-gray-900">{formatRupiah(item.cost)}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-600 mb-1">Margin</div>
-                        <div className="text-gray-900">
-                          {(((item.price - item.cost) / item.price) * 100).toFixed(0)}%
+                      <div className="grid grid-cols-3 gap-4 mt-4">
+                        <div>
+                          <div className="text-gray-600 mb-1">Harga</div>
+                          <div className="text-orange-600">
+                            {formatRupiah(item.price || 0)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-gray-600 mb-1">Biaya</div>
+                          <div className="text-gray-900">{formatRupiah(item.cost || 0)}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-600 mb-1">Margin</div>
+                          <div className="text-gray-900">
+                            {item.price > 0
+                              ? (((item.price - (item.cost || 0)) / item.price) * 100).toFixed(0)
+                              : '0'}%
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+              
+                <div className="flex gap-2 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => toggleAvailability(item.id)}
+                    className="flex-1 px-4 py-2 bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-lg transition-colors"
+                  >
+                    {item.available !== false ? 'Tandai Tidak Tersedia' : 'Tandai Tersedia'}
+                  </button>
+                  <button
+                    onClick={() => handleOpenEditModal(item)}
+                    className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Hapus"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            
-              <div className="flex gap-2 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => toggleAvailability(item.id)}
-                  className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
-                    item.available
-                      ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                      : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                  }`}
-                >
-                  {item.available ? 'Tandai Tidak Tersedia' : 'Tandai Tersedia'}
-                </button>
-                <button
-                  onClick={() => handleEdit(item.id)}
-                  className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                  title="Edit"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Hapus"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-200">
+            <Package className="w-16 h-16 mx-auto mb-4 opacity-20 text-orange-600" />
+            <p className="text-lg">Tidak ada item menu ditemukan</p>
+            <p className="text-sm text-gray-400 mt-1">Tambahkan item baru untuk memulai</p>
+          </div>
+        )}
       </div>
 
-      {/* Add Item Modal - Simplified for demo */}
+      {/* Add/Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-8">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
-            <h2 className="text-gray-900 mb-4">Tambah Item Menu Baru</h2>
-            <p className="text-gray-600 mb-6">Fitur akan segera hadir - ini adalah antarmuka demo</p>
-            <button
-              onClick={() => {
-                setShowAddModal(false);
-                toast.success('Item berhasil ditambahkan');
-              }}
-              className="w-full px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-            >
-              Tutup
-            </button>
+            <h2 className="text-gray-900 mb-4">
+              {editingItem ? 'Edit Item Menu' : 'Tambah Item Menu Baru'}
+            </h2>
+            <form onSubmit={handleSaveItem} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Item</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Barang A"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <input
+                  type="text"
+                  value={formData.category}
+                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                  placeholder="Makanan / Minuman / Barang"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Harga Jual (Rp)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.price || ''}
+                    placeholder="0"
+                    onChange={(e) => setFormData(prev => ({ ...prev, price: parseInt(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Harga Modal / Cost (Rp)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.cost || ''}
+                    placeholder="0"
+                    onChange={(e) => setFormData(prev => ({ ...prev, cost: parseInt(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                >
+                  Simpan
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

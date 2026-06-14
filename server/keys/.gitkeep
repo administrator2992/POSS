@@ -1,0 +1,5 @@
+# Place your DANA key files in this directory:
+# - private_key.pem    (your RSA private key from DANA)
+# - dana_public_key.pem (DANA's public key for webhook verification)
+#
+# Get these from: https://dashboard.dana.id (Settings > API Keys)

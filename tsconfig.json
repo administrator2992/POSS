@@ -23,5 +23,11 @@
   },
   "include": [
     "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "supabase",
+    "server",
+    "dist-electron"
   ]
 }

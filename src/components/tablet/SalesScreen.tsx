@@ -3,7 +3,7 @@ import { Order } from '../TabletPOS';
 import { PaymentScreen } from './PaymentScreen';
 import { ReceiptScreen } from './ReceiptScreen';
 import { ShiftReport } from './ShiftReport';
-import { LogOut, Menu, History, X, Settings, Package, Cake, Trash2, Minus, Plus, Tag, CreditCard } from 'lucide-react';
+import { LogOut, Menu, History, X, Settings, Package, Trash2, Minus, Plus, Tag, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { DiscountModal } from './DiscountModal';
 import { dbService, Transaction, InventoryItem } from '../../services/DatabaseService';
@@ -18,26 +18,8 @@ interface MenuItem {
   id: string;
   name: string;
   price: number;
-  code?: string;
+  category: string;
 }
-
-// Generate random prices between 5000 and 25000 Rupiah
-const generatePrice = () => Math.floor(Math.random() * (25000 - 5000 + 1) + 5000);
-
-const BAKERY_ITEMS = [
-  { id: '1', name: 'Kue Lapis', code: 'KL', price: generatePrice() },
-  { id: '2', name: 'Kue Mangkok', code: 'KM', price: generatePrice() },
-  { id: '3', name: 'Lemper', code: 'LP', price: generatePrice() },
-  { id: '4', name: 'Pastel', code: 'PS', price: generatePrice() },
-  { id: '5', name: 'Wajik', code: 'WJ', price: generatePrice() },
-  { id: '6', name: 'Bacang Ayam', code: 'BA', price: generatePrice() },
-  { id: '7', name: 'Bacang T. Asin', code: 'BTA', price: generatePrice() },
-  { id: '8', name: 'Bakwan', code: 'BK', price: generatePrice() },
-  { id: '9', name: 'Bakwan Udang', code: 'BU', price: generatePrice() },
-  { id: '10', name: 'Kue Ku', code: 'KK', price: generatePrice() },
-  { id: '11', name: 'Paketku', code: 'PK', price: generatePrice() },
-  { id: '12', name: 'Risoles', code: 'RS', price: generatePrice() },
-];
 
 type SearchMode = 'code' | 'name';
 
@@ -47,22 +29,31 @@ export function SalesScreen({ currentOrder, onOrderUpdate, onCheckout }: SalesSc
   const [showDiscountModal, setShowDiscountModal] = useState(false);
   const [showHistoryMenu, setShowHistoryMenu] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [menuItems, setMenuItems] = useState<InventoryItem[]>([]);
 
   useEffect(() => {
     const loadTransactions = async () => {
       const storedTransactions = await dbService.getTransactions();
       setTransactions(storedTransactions);
     };
+    const loadMenuItems = async () => {
+      const storedInventory = await dbService.getInventory();
+      // Only show items that are available (default is true if undefined)
+      const availableItems = storedInventory.filter(item => item.available !== false);
+      setMenuItems(availableItems);
+    };
     
     loadTransactions();
+    loadMenuItems();
   }, []);
 
-  const filteredItems = BAKERY_ITEMS.filter(item => {
+  const filteredItems = menuItems.filter(item => {
     if (!searchQuery) return true;
     
     const query = searchQuery.toLowerCase();
-    if (searchMode === 'code' && item.code) {
-      return item.code.toLowerCase().includes(query);
+    if (searchMode === 'code') {
+      // If code is searched, match by ID prefix or category
+      return item.id.toLowerCase().includes(query) || item.category.toLowerCase().includes(query);
     } else {
       return item.name.toLowerCase().includes(query);
     }
@@ -75,15 +66,14 @@ export function SalesScreen({ currentOrder, onOrderUpdate, onCheckout }: SalesSc
     return { subtotal, tax, total };
   };
 
-  const addItemToOrder = (menuItem: MenuItem) => {
+  const addItemToOrder = (menuItem: InventoryItem) => {
     handleAddWithModifiers(menuItem, [], '');
   };
 
-  const handleAddWithModifiers = (menuItem: MenuItem, modifiers: string[], notes: string) => {
-    // If the item doesn't have a price (from database), generate one
+  const handleAddWithModifiers = (menuItem: InventoryItem, modifiers: string[], notes: string) => {
     const itemWithPrice = {
       ...menuItem,
-      price: menuItem.price || generatePrice()
+      price: menuItem.price || 0
     };
     
     const existingItemIndex = currentOrder.items.findIndex(
@@ -106,6 +96,7 @@ export function SalesScreen({ currentOrder, onOrderUpdate, onCheckout }: SalesSc
           quantity: 1,
           modifiers: modifiers.length > 0 ? modifiers : undefined,
           notes: notes || undefined,
+          category: itemWithPrice.category,
         },
       ];
     }
@@ -209,22 +200,32 @@ export function SalesScreen({ currentOrder, onOrderUpdate, onCheckout }: SalesSc
 
         {/* Items Grid */}
         <div className="flex-1 overflow-auto p-4">
-          <div className="grid grid-cols-4 gap-4">
-            {filteredItems.map(item => (
-              <button
-                key={item.id}
-                onClick={() => addItemToOrder(item)}
-                className="bg-white rounded-lg p-4 border-2 border-gray-200 hover:border-orange-500 transition-all hover:shadow-md text-left"
-              >
-                <div className="aspect-square bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg mb-3 flex items-center justify-center">
-                  <Cake className="w-12 h-12 text-orange-600" />
-                </div>
-                <div className="text-gray-900 mb-1">{item.name}</div>
-                <div className="text-gray-500 mb-2">{item.code}</div>
-                <div className="text-orange-600">{formatRupiah(item.price)}</div>
-              </button>
-            ))}
-          </div>
+          {filteredItems.length > 0 ? (
+            <div className="grid grid-cols-4 gap-4">
+              {filteredItems.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => addItemToOrder(item)}
+                  className="bg-white rounded-lg p-4 border-2 border-gray-200 hover:border-orange-500 transition-all hover:shadow-md text-left"
+                >
+                  <div className="aspect-square bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg mb-3 flex items-center justify-center">
+                    <Package className="w-12 h-12 text-orange-600" />
+                  </div>
+                  <div className="text-gray-900 mb-1">{item.name}</div>
+                  <div className="text-gray-500 mb-2">{item.category}</div>
+                  <div className="text-orange-600">{formatRupiah(item.price || 0)}</div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-200">
+              <Package className="w-16 h-16 mx-auto mb-4 opacity-20 text-orange-600" />
+              <p className="text-lg font-medium">Belum ada item menu</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Tambahkan barang/menu baru terlebih dahulu di halaman Backoffice (Inventori / Menu) untuk memunculkan produk di kasir.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -293,7 +294,7 @@ export function SalesScreen({ currentOrder, onOrderUpdate, onCheckout }: SalesSc
         <div className="flex-1 overflow-auto p-4">
           {currentOrder.items.length === 0 ? (
             <div className="text-center text-gray-400 mt-12">
-              <Cake className="w-16 h-16 mx-auto mb-4 opacity-20" />
+              <Package className="w-16 h-16 mx-auto mb-4 opacity-20" />
               <p>Belum ada item</p>
             </div>
           ) : (

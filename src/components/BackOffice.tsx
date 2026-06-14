@@ -10,7 +10,8 @@ import {
   LayoutDashboard,
   FileText,
   Package,
-  Cake,
+  Store,
+  ShoppingBag,
   Users,
   LogOut,
   Tablet,
@@ -62,7 +63,7 @@ export function BackOffice({ currentUser, onLogout, onSwitchToTablet, initialScr
     { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'reports' as const, label: 'Laporan', icon: FileText },
     { id: 'inventory' as const, label: 'Inventori', icon: Package },
-    { id: 'menu' as const, label: 'Menu', icon: Cake },
+    { id: 'menu' as const, label: 'Menu', icon: ShoppingBag },
     { id: 'employees' as const, label: 'Karyawan', icon: Users },
     { id: 'settings' as const, label: 'Pengaturan', icon: SettingsIcon },
   ];
@@ -77,7 +78,7 @@ export function BackOffice({ currentUser, onLogout, onSwitchToTablet, initialScr
             {storeLogo ? (
               <img src={storeLogo} alt="Store Logo" className="w-6 h-6 object-contain" />
             ) : (
-              <Cake className="w-6 h-6 text-orange-600" />
+              <Store className="w-6 h-6 text-orange-600" />
             )}
             <span className="text-orange-600">{storeName}</span>
           </div>

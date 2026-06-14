@@ -1,15 +1,6 @@
 import { useState } from 'react';
-import { X, Package } from 'lucide-react';
-
-interface InventoryItem {
-  id: string;
-  name: string;
-  category: string;
-  stock: number;
-  unit: string;
-  lowStockThreshold: number;
-  lastUpdated: string;
-}
+import { X } from 'lucide-react';
+import { InventoryItem } from '../../services/DatabaseService';
 
 interface AddEditInventoryItemProps {
   item?: Omit<InventoryItem, 'lastUpdated'> & { lastUpdated?: string };
@@ -23,12 +14,15 @@ const UNITS = [
 ];
 
 export function AddEditInventoryItem({ item, onSave, onCancel, categories }: AddEditInventoryItemProps) {
+  const [customCategory, setCustomCategory] = useState('');
   const [formData, setFormData] = useState({
     id: item?.id || Date.now().toString(),
     name: item?.name || '',
     category: item?.category || categories[0] || 'Other',
     stock: item?.stock || 0,
     unit: item?.unit || 'pcs',
+    price: item?.price || 0,
+    cost: item?.cost || 0,
     lowStockThreshold: item?.lowStockThreshold || 10,
   });
 
@@ -42,9 +36,11 @@ export function AddEditInventoryItem({ item, onSave, onCancel, categories }: Add
     const completeItem: InventoryItem = {
       id: formData.id,
       name: formData.name,
-      category: formData.category,
+      category: formData.category === 'Other' ? customCategory.trim() || 'Other' : formData.category,
       stock: formData.stock,
       unit: formData.unit,
+      price: formData.price,
+      cost: formData.cost,
       lowStockThreshold: formData.lowStockThreshold,
       lastUpdated: new Date().toISOString().split('T')[0],
     };
@@ -95,7 +91,7 @@ export function AddEditInventoryItem({ item, onSave, onCancel, categories }: Add
                     {category}
                   </option>
                 ))}
-                <option value="Other">Other</option>
+                <option value="Other">Other (Type New...)</option>
               </select>
             </div>
 
@@ -117,6 +113,54 @@ export function AddEditInventoryItem({ item, onSave, onCancel, categories }: Add
             </div>
           </div>
 
+          {formData.category === 'Other' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                New Category Name
+              </label>
+              <input
+                type="text"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder="e.g. Sembako, Minuman, Pakaian, dll."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                required
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Harga Jual (Rp)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.price || ''}
+                placeholder="0"
+                onChange={(e) => handleChange('price', parseInt(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Harga Modal (Rp)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.cost || ''}
+                placeholder="0"
+                onChange={(e) => handleChange('cost', parseInt(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                required
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -125,7 +169,8 @@ export function AddEditInventoryItem({ item, onSave, onCancel, categories }: Add
               <input
                 type="number"
                 min="0"
-                value={formData.stock}
+                value={formData.stock || ''}
+                placeholder="0"
                 onChange={(e) => handleChange('stock', parseInt(e.target.value) || 0)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 required
@@ -139,7 +184,8 @@ export function AddEditInventoryItem({ item, onSave, onCancel, categories }: Add
               <input
                 type="number"
                 min="0"
-                value={formData.lowStockThreshold}
+                value={formData.lowStockThreshold || ''}
+                placeholder="0"
                 onChange={(e) => handleChange('lowStockThreshold', parseInt(e.target.value) || 0)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 required

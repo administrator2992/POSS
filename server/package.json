@@ -1,0 +1,16 @@
+{
+  "name": "poss-server",
+  "version": "1.0.0",
+  "description": "POSS Backend - DANA Payment Gateway",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dana-node": "^2.1.8",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

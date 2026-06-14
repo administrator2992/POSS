@@ -4,7 +4,7 @@ import { SalesScreen } from './tablet/SalesScreen';
 import { PaymentScreen } from './tablet/PaymentScreen';
 import { ReceiptScreen } from './tablet/ReceiptScreen';
 import { ShiftReport } from './tablet/ShiftReport';
-import { LogOut, Menu, X, Settings, Package, Cake, FileText } from 'lucide-react';
+import { LogOut, Menu, X, Settings, Package, Store, FileText } from 'lucide-react';
 import { dbService, Transaction } from '../services/DatabaseService';
 
 interface TabletPOSProps {
@@ -23,6 +23,7 @@ export interface OrderItem {
   quantity: number;
   modifiers?: string[];
   notes?: string;
+  category?: string;
 }
 
 export interface Order {
@@ -31,6 +32,7 @@ export interface Order {
   discount: number;
   tax: number;
   total: number;
+  paymentMethod?: string;
 }
 
 export function TabletPOS({ currentUser, onLogout, onClockOut, onSwitchToBackOffice }: TabletPOSProps) {
@@ -45,7 +47,7 @@ export function TabletPOS({ currentUser, onLogout, onClockOut, onSwitchToBackOff
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [storeName, setStoreName] = useState('Toko Kue');
+  const [storeName, setStoreName] = useState('Toko Retail');
   const [storeLogo, setStoreLogo] = useState<string | null>(null);
 
   useEffect(() => {
@@ -160,7 +162,7 @@ export function TabletPOS({ currentUser, onLogout, onClockOut, onSwitchToBackOff
             {storeLogo ? (
               <img src={storeLogo} alt="Store Logo" className="w-6 h-6 object-contain" />
             ) : (
-              <Cake className="w-6 h-6 text-orange-600" />
+              <Store className="w-6 h-6 text-orange-600" />
             )}
             <span className="text-orange-600">{storeName}</span>
           </div>
