@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POSS - Sistem Kasir (POS) Hibrida Tanpa Server</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom Tailwind Config for Brand Colors -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            orange: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              300: '#fdba74',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            },
+            brown: {
+              50: '#fdf8f6',
+              100: '#f2e8e5',
+              200: '#eaddd7',
+              300: '#e0cec7',
+              400: '#d2bab0',
+              500: '#bfa094',
+              600: '#a18072',
+              700: '#977669',
+              800: '#846358',
+              900: '#43302b',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Custom animation for spin */
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+      animation: spin-slow 8s linear infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-orange-200 selection:text-orange-900 overflow-x-hidden">
+
+  <!-- Header / Navigation -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-200/80">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center shadow-md shadow-orange-600/20">
+          <span class="text-white font-bold text-lg">P</span>
+        </div>
+        <span class="text-xl font-bold tracking-tight text-slate-900" data-key="navBrand">POSS</span>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+        <a href="#features" class="hover:text-orange-600 transition-colors" data-key="navFeatures">Fitur Utama</a>
+        <a href="#preview" class="hover:text-orange-600 transition-colors" data-key="navPreview">Pratinjau</a>
+        <a href="#downloads" class="hover:text-orange-600 transition-colors" data-key="navDownloads">Unduhan</a>
+      </nav>
+
+      <div class="flex items-center gap-4">
+        <!-- Language Switcher -->
+        <button id="langBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 hover:border-orange-500 hover:bg-orange-50/50 transition-all text-xs font-semibold text-slate-700 cursor-pointer">
+          <i data-lucide="globe" class="w-3.5 h-3.5 text-slate-500"></i>
+          <span id="langLabel">ID 🇮🇩</span>
+        </button>
+
+        <!-- Try Demo CTA -->
+        <a href="http://localhost:3000" target="_blank" class="bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm hover:shadow-orange-600/10 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer" data-key="navDemo">
+          Coba Demo
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-20 pb-24 md:pt-28 md:pb-32 overflow-hidden bg-gradient-to-br from-amber-50/60 via-slate-50 to-orange-50/40">
+    <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-orange-200/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-12 left-1/3 w-[300px] h-[300px] bg-amber-200/15 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-6 relative">
+      <div class="grid lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- Left Content -->
+        <div class="lg:col-span-6 text-center lg:text-left space-y-6">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-100 text-orange-800 text-xs font-bold rounded-full uppercase tracking-wider">
+            <span class="w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse"></span>
+            <span data-key="badge">Versi 1.0.0 Stabil</span>
+          </div>
+          
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-tight tracking-tight" data-key="heroTitle">
+            Sistem Kasir (POS) Hibrida Tanpa Server
+          </h1>
+          
+          <p class="text-lg text-slate-600 font-normal leading-relaxed max-w-xl mx-auto lg:mx-0" data-key="heroSubtitle">
+            POSS adalah aplikasi kasir offline-first yang dioptimalkan untuk kafe, toko roti, dan ritel. Berjalan di Web browser, tablet Android, dan PC Windows.
+          </p>
+          
+          <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+            <a href="http://localhost:3000" target="_blank" class="w-full sm:w-auto px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold shadow-lg shadow-orange-600/20 hover:shadow-orange-600/30 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2 cursor-pointer text-base">
+              <span data-key="ctaDemo">Coba Demo Live Web</span>
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </a>
+            
+            <a href="#downloads" class="w-full sm:w-auto px-8 py-4 bg-white border border-slate-200 hover:border-orange-500 hover:bg-orange-50/30 text-slate-700 rounded-xl font-bold transition-all flex items-center justify-center gap-2">
+              <i data-lucide="download" class="w-5 h-5 text-slate-500"></i>
+              <span data-key="ctaDownload">Unduh Aplikasi Kasir</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right Visual Mockup -->
+        <div class="lg:col-span-6 relative">
+          <div class="relative mx-auto max-w-[500px] lg:max-w-none rounded-2xl border-4 border-slate-900 bg-slate-900 p-2 shadow-2xl">
+            <!-- Simulated Screen -->
+            <div class="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-slate-50 border border-slate-800 flex flex-col">
+              
+              <!-- Top Bar of POS Mockup -->
+              <div class="h-10 bg-white border-b border-slate-200 flex items-center justify-between px-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                  <span class="text-[10px] font-bold text-slate-500 tracking-wider">POSS TERMINAL 01</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="px-1.5 py-0.5 bg-orange-100 rounded text-[9px] font-bold text-orange-800">
+                    <span data-key="activeCashier">Shift Aktif</span>: <span data-key="activeCashierName">Ahmad Nabhaan</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Body Content of POS Mockup -->
+              <div class="flex-1 grid grid-cols-12 overflow-hidden bg-slate-100 p-2 gap-2">
+                
+                <!-- Left Items Column (Cart) -->
+                <div class="col-span-4 bg-white rounded border border-slate-200 flex flex-col p-2 shadow-sm">
+                  <div class="text-[10px] font-bold text-slate-400 mb-1.5 tracking-wide uppercase" data-key="cartLabel">Pesanan / Cart</div>
+                  <div class="flex-1 space-y-1.5 overflow-hidden">
+                    <div class="flex items-center justify-between text-[9px] border-b border-slate-100 pb-1.5">
+                      <div>
+                        <div class="font-bold text-slate-800" data-key="inventoryItem">Roti Cokelat</div>
+                        <div class="text-slate-400">2x Rp 25.000</div>
+                      </div>
+                      <span class="font-bold text-slate-800">Rp 50.000</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[9px] border-b border-slate-100 pb-1.5">
+                      <div>
+                        <div class="font-bold text-slate-800">Iced Hazelnut Latte</div>
+                        <div class="text-slate-400">1x Rp 30.000</div>
+                      </div>
+                      <span class="font-bold text-slate-800">Rp 30.000</span>
+                    </div>
+                  </div>
+                  <div class="border-t border-slate-200 pt-1.5 mt-2 space-y-1">
+                    <div class="flex justify-between text-[10px]">
+                      <span class="text-slate-500">Subtotal</span>
+                      <span class="font-bold text-slate-700">Rp 80.000</span>
+                    </div>
+                    <button class="w-full bg-orange-600 text-white rounded py-1 text-[10px] font-bold hover:bg-orange-700 transition-colors mt-1" data-key="checkoutBtn">
+                      Bayar (Checkout)
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Right Items Grid Mockup -->
+                <div class="col-span-8 flex flex-col gap-2 overflow-hidden">
+                  <!-- Categories tab -->
+                  <div class="flex gap-1">
+                    <div class="px-2 py-0.5 bg-orange-600 text-white rounded text-[8px] font-bold" data-key="catAll">Semua</div>
+                    <div class="px-2 py-0.5 bg-white text-slate-600 rounded text-[8px] border border-slate-200">Kopi</div>
+                    <div class="px-2 py-0.5 bg-white text-slate-600 rounded text-[8px] border border-slate-200">Pastry</div>
+                  </div>
+
+                  <!-- Products Grid -->
+                  <div class="flex-1 grid grid-cols-3 gap-1.5 overflow-hidden">
+                    <div class="bg-white rounded border border-slate-200 flex flex-col p-1.5 hover:border-orange-500 transition-all cursor-pointer">
+                      <div class="flex-1 rounded bg-amber-100 flex items-center justify-center p-1">
+                        <i data-lucide="coffee" class="w-3.5 h-3.5 text-slate-700/60"></i>
+                      </div>
+                      <div class="text-[7.5px] font-bold text-slate-800 mt-1 line-clamp-1" data-key="inventoryItem">Roti Cokelat</div>
+                      <div class="text-[7px] text-orange-600 font-bold">Rp 25k</div>
+                    </div>
+                    <div class="bg-white rounded border border-slate-200 flex flex-col p-1.5 hover:border-orange-500 transition-all cursor-pointer">
+                      <div class="flex-1 rounded bg-orange-100 flex items-center justify-center p-1">
+                        <i data-lucide="coffee" class="w-3.5 h-3.5 text-slate-700/60"></i>
+                      </div>
+                      <div class="text-[7.5px] font-bold text-slate-800 mt-1 line-clamp-1">Iced Latte</div>
+                      <div class="text-[7px] text-orange-600 font-bold">Rp 28k</div>
+                    </div>
+                    <div class="bg-white rounded border border-slate-200 flex flex-col p-1.5 hover:border-orange-500 transition-all cursor-pointer">
+                      <div class="flex-1 rounded bg-rose-100 flex items-center justify-center p-1">
+                        <i data-lucide="coffee" class="w-3.5 h-3.5 text-slate-700/60"></i>
+                      </div>
+                      <div class="text-[7.5px] font-bold text-slate-800 mt-1 line-clamp-1">Espresso</div>
+                      <div class="text-[7px] text-orange-600 font-bold">Rp 18k</div>
+                    </div>
+                    <div class="bg-white rounded border border-slate-200 flex flex-col p-1.5 hover:border-orange-500 transition-all cursor-pointer">
+                      <div class="flex-1 rounded bg-emerald-100 flex items-center justify-center p-1">
+                        <i data-lucide="coffee" class="w-3.5 h-3.5 text-slate-700/60"></i>
+                      </div>
+                      <div class="text-[7.5px] font-bold text-slate-800 mt-1 line-clamp-1">Matcha Cake</div>
+                      <div class="text-[7px] text-orange-600 font-bold">Rp 32k</div>
+                    </div>
+                    <div class="bg-white rounded border border-slate-200 flex flex-col p-1.5 hover:border-orange-500 transition-all cursor-pointer">
+                      <div class="flex-1 rounded bg-yellow-100 flex items-center justify-center p-1">
+                        <i data-lucide="coffee" class="w-3.5 h-3.5 text-slate-700/60"></i>
+                      </div>
+                      <div class="text-[7.5px] font-bold text-slate-800 mt-1 line-clamp-1">Cheese Roll</div>
+                      <div class="text-[7px] text-orange-600 font-bold">Rp 22k</div>
+                    </div>
+                    <div class="bg-white rounded border border-slate-200 flex flex-col p-1.5 hover:border-orange-500 transition-all cursor-pointer">
+                      <div class="flex-1 rounded bg-stone-100 flex items-center justify-center p-1">
+                        <i data-lucide="coffee" class="w-3.5 h-3.5 text-slate-700/60"></i>
+                      </div>
+                      <div class="text-[7.5px] font-bold text-slate-800 mt-1 line-clamp-1">Brownie</div>
+                      <div class="text-[7px] text-orange-600 font-bold">Rp 20k</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            
+            <!-- Floating Decorative Success badge -->
+            <div class="absolute -bottom-6 -left-6 bg-white border border-slate-200 shadow-lg rounded-xl p-3.5 hidden sm:flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <i data-lucide="check" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">DANA QRIS Pay</div>
+                <div class="text-xs font-black text-slate-800">Payment Confirmed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section id="features" class="py-24 bg-white border-y border-slate-200/60">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto space-y-4 mb-20">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight" data-key="featuresTitle">
+          Mengapa Memilih POSS?
+        </h2>
+        <p class="text-slate-500 text-lg" data-key="featuresSubtitle">
+          Dirancang untuk operasional lokal yang mulus tanpa ketergantungan server atau biaya bulanan.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Card 1 -->
+        <div class="bg-slate-50 border border-slate-200/70 hover:border-orange-500/50 hover:shadow-xl hover:shadow-orange-600/5 rounded-2xl p-8 transition-all duration-300 flex flex-col space-y-4">
+          <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
+            <i data-lucide="shield" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900" data-key="featOffline">Penyimpanan Offline-First</h3>
+          <p class="text-slate-600 text-sm leading-relaxed flex-1" data-key="featOfflineDesc">
+            Seluruh data inventaris, karyawan, dan transaksi disimpan langsung di perangkat Anda. Penjualan tetap berjalan lancar meski internet padam.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-slate-50 border border-slate-200/70 hover:border-orange-500/50 hover:shadow-xl hover:shadow-orange-600/5 rounded-2xl p-8 transition-all duration-300 flex flex-col space-y-4">
+          <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
+            <i data-lucide="refresh-cw" class="w-6 h-6 animate-spin"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900" data-key="featP2P">Sinkronisasi Wi-Fi P2P</h3>
+          <p class="text-slate-600 text-sm leading-relaxed flex-1" data-key="featP2PDesc">
+            Siarkan dan sinkronkan data antar perangkat kasir secara real-time di jaringan Wi-Fi lokal Anda. Peer-to-peer tanpa database cloud.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-slate-50 border border-slate-200/70 hover:border-orange-500/50 hover:shadow-xl hover:shadow-orange-600/5 rounded-2xl p-8 transition-all duration-300 flex flex-col space-y-4">
+          <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
+            <i data-lucide="credit-card" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900" data-key="featQris">Integrasi QRIS SNAP DANA</h3>
+          <p class="text-slate-600 text-sm leading-relaxed flex-1" data-key="featQrisDesc">
+            Mendukung pembayaran QRIS dinamis (Service Code 47 MPM) terintegrasi dengan API DANA. Terima pembayaran digital dari dompet apa pun secara instan.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Mockups -->
+  <section id="preview" class="py-24 bg-gradient-to-b from-white to-slate-50">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto space-y-4 mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight" data-key="previewTitle">
+          Jelajahi Antarmuka Kasir
+        </h2>
+        <p class="text-slate-500 text-lg" data-key="previewSubtitle">
+          Desain visual premium yang dioptimalkan khusus untuk layar landscape tablet dan monitor komputer.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-3 mb-10">
+        <button onclick="switchTab('checkout')" id="tabBtn-checkout" class="px-6 py-3 rounded-full text-sm font-bold transition-all shadow-xs cursor-pointer bg-orange-600 text-white shadow-md">
+          <span data-key="tabCheckout">Layar Kasir (POS Grid)</span>
+        </button>
+        <button onclick="switchTab('inventory')" id="tabBtn-inventory" class="px-6 py-3 rounded-full text-sm font-bold transition-all shadow-xs cursor-pointer bg-white border border-slate-200 text-slate-600 hover:border-orange-500/50">
+          <span data-key="tabInventory">Kelola Stok (Backoffice)</span>
+        </button>
+        <button onclick="switchTab('reports')" id="tabBtn-reports" class="px-6 py-3 rounded-full text-sm font-bold transition-all shadow-xs cursor-pointer bg-white border border-slate-200 text-slate-600 hover:border-orange-500/50">
+          <span data-key="tabReports">Laporan & Analitik</span>
+        </button>
+      </div>
+
+      <div class="max-w-4xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+        
+        <!-- Checkout Tab -->
+        <div id="tabContent-checkout" class="tab-pane space-y-6">
+          <div class="aspect-[16/9] bg-gradient-to-br from-orange-50 to-amber-50/50 rounded-2xl flex items-center justify-center border border-slate-200 relative overflow-hidden">
+            <div class="absolute inset-0 p-6 flex flex-col justify-between">
+              <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center gap-3">
+                  <i data-lucide="shopping-bag" class="w-5 h-5 text-orange-600"></i>
+                  <span class="font-bold text-slate-800 text-sm">Main Sales Interface</span>
+                </div>
+                <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">Kiosk Grid Ready</span>
+              </div>
+              <div class="flex-1 flex items-center justify-center py-6">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xl p-5 max-w-sm w-full space-y-4">
+                  <div class="flex justify-between border-b border-slate-100 pb-2">
+                    <span class="text-slate-500 text-sm"><span data-key="inventoryItem">Roti Cokelat</span> x2</span>
+                    <span class="font-bold text-slate-900 text-sm">Rp 50.000</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-100 pb-2">
+                    <span class="text-slate-500 text-sm">Americano x1</span>
+                    <span class="font-bold text-slate-900 text-sm">Rp 20.000</span>
+                  </div>
+                  <div class="flex justify-between font-bold text-lg text-slate-900 pt-1">
+                    <span>Total</span>
+                    <span class="text-orange-600">Rp 70.000</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-slate-600 text-sm text-center font-medium max-w-xl mx-auto" data-key="checkoutDesc">
+            Layar transaksi kasir yang intuitif. Pilih kategori produk dengan mudah, sesuaikan jumlah keranjang, dan lakukan checkout tunai atau QRIS secara cepat.
+          </p>
+        </div>
+
+        <!-- Inventory Tab -->
+        <div id="tabContent-inventory" class="tab-pane hidden space-y-6">
+          <div class="aspect-[16/9] bg-gradient-to-br from-slate-100 to-amber-50/30 rounded-2xl flex items-center justify-center border border-slate-200 relative overflow-hidden">
+            <div class="absolute inset-0 p-6 flex flex-col justify-between">
+              <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center gap-3">
+                  <i data-lucide="coffee" class="w-5 h-5 text-orange-600"></i>
+                  <span class="font-bold text-slate-800 text-sm" data-key="backofficeView">Pratinjau Dashboard</span>
+                </div>
+                <span class="text-xs text-slate-500 font-bold bg-slate-100 px-3 py-1 rounded-full">Database: Local</span>
+              </div>
+              <div class="flex-1 flex items-center justify-center py-6">
+                <div class="w-full max-w-md bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden divide-y divide-slate-100 text-xs">
+                  <div class="flex items-center justify-between p-3 font-semibold bg-slate-50 text-slate-500">
+                    <span>Product Name</span>
+                    <span>Stock Level</span>
+                    <span>Unit Price</span>
+                  </div>
+                  <div class="flex items-center justify-between p-3 font-bold text-slate-800">
+                    <span data-key="inventoryItem">Roti Cokelat</span>
+                    <span class="text-orange-600" data-key="inventoryStock">Sisa 42 unit</span>
+                    <span>Rp 25.000</span>
+                  </div>
+                  <div class="flex items-center justify-between p-3 text-slate-700">
+                    <span>Vanilla Latte</span>
+                    <span class="text-slate-500">28 units</span>
+                    <span>Rp 28.000</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-slate-600 text-sm text-center font-medium max-w-xl mx-auto" data-key="inventoryDesc">
+            Log inventaris yang lengkap. Ubah harga produk, atur batas minimum stok, dan update kategori dengan kompresi data berkinerja tinggi.
+          </p>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="tabContent-reports" class="tab-pane hidden space-y-6">
+          <div class="aspect-[16/9] bg-gradient-to-br from-orange-50/40 via-white to-amber-50/20 rounded-2xl flex items-center justify-center border border-slate-200 relative overflow-hidden">
+            <div class="absolute inset-0 p-6 flex flex-col justify-between">
+              <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center gap-3">
+                  <i data-lucide="shield" class="w-5 h-5 text-orange-600"></i>
+                  <span class="font-bold text-slate-800 text-sm">Shift Reports</span>
+                </div>
+                <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">Calculated Live</span>
+              </div>
+              <div class="flex-1 grid grid-cols-3 gap-4 items-center py-6">
+                <div class="bg-white p-4 rounded-xl border border-slate-150 shadow-md text-center">
+                  <div class="text-[10px] text-slate-400 font-bold uppercase" data-key="totalRevenue">Pendapatan Hari Ini</div>
+                  <div class="text-sm font-extrabold text-slate-800 mt-1" data-key="totalAmt">Rp 1.450.000</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-150 shadow-md text-center">
+                  <div class="text-[10px] text-slate-400 font-bold uppercase" data-key="orderCount">Jumlah Transaksi</div>
+                  <div class="text-sm font-extrabold text-slate-800 mt-1" data-key="orderCountVal">48 transaksi</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-150 shadow-md text-center">
+                  <div class="text-[10px] text-slate-400 font-bold uppercase" data-key="activeCashier">Shift Aktif</div>
+                  <div class="text-sm font-extrabold text-slate-800 mt-1" data-key="activeCashierName">Ahmad Nabhaan</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-slate-600 text-sm text-center font-medium max-w-xl mx-auto" data-key="reportsDesc">
+            Laporan dashboard interaktif. Analisis tren pendapatan, pantau riwayat shift karyawan, dan lihat grafik kinerja kasir dalam satu halaman terintegrasi.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Distribution Hub & Downloads -->
+  <section id="downloads" class="py-24 bg-white border-t border-slate-200/60">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto space-y-4 mb-20">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight" data-key="downloadTitle">
+          Mulai Menggunakan POSS
+        </h2>
+        <p class="text-slate-500 text-lg" data-key="downloadSubtitle">
+          Pilih format distribusi aplikasi yang paling sesuai dengan kebutuhan operasional bisnis Anda.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        
+        <!-- Windows App -->
+        <div class="bg-slate-50 border border-slate-200 hover:border-orange-500 transition-all rounded-3xl p-8 flex flex-col justify-between shadow-xs">
+          <div class="space-y-6">
+            <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
+              <i data-lucide="monitor" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-2">
+              <h3 class="text-xl font-bold text-slate-900" data-key="downWin">Aplikasi Windows Desktop</h3>
+              <p class="text-slate-500 text-xs font-semibold leading-relaxed" data-key="downWinDesc">
+                Dikemas melalui Electron menjadi installer native Windows (.exe). Jendela otomatis maksimal, stabil, dan berjalan offline sepenuhnya.
+              </p>
+            </div>
+          </div>
+          <div class="pt-8">
+            <button onclick="alert('Electron Packaging is ready. Running \'npm run electron:build\' compiles the final .exe installer under /dist-electron')" class="w-full py-3 border border-slate-300 hover:border-orange-500 hover:bg-orange-50/30 text-slate-700 font-bold rounded-xl text-sm flex items-center justify-center gap-2 cursor-pointer transition-all">
+              <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
+              <span data-key="downButton">Unduh Aplikasi</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Android App -->
+        <div class="bg-slate-50 border border-slate-200 hover:border-orange-500 transition-all rounded-3xl p-8 flex flex-col justify-between shadow-xs">
+          <div class="space-y-6">
+            <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
+              <i data-lucide="smartphone" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-2">
+              <h3 class="text-xl font-bold text-slate-900" data-key="downAndroid">Aplikasi Tablet Android</h3>
+              <p class="text-slate-500 text-xs font-semibold leading-relaxed" data-key="downAndroidDesc">
+                Dikemas melalui Capacitor. Orientasi landscape yang dipaksakan, tombol sentuh besar ramah jari, dan performa mulus.
+              </p>
+            </div>
+          </div>
+          <div class="pt-8">
+            <button onclick="alert('Android Packaging is ready. Running \'npm run build-android\' packages the app, and Android Studio compiles the .apk binary.')" class="w-full py-3 border border-slate-300 hover:border-orange-500 hover:bg-orange-50/30 text-slate-700 font-bold rounded-xl text-sm flex items-center justify-center gap-2 cursor-pointer transition-all">
+              <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
+              <span data-key="downButton">Unduh Aplikasi</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Web Demo -->
+        <div class="bg-orange-50/40 border-2 border-orange-600/35 hover:border-orange-600 rounded-3xl p-8 flex flex-col justify-between shadow-sm">
+          <div class="space-y-6">
+            <div class="w-12 h-12 rounded-2xl bg-orange-600 flex items-center justify-center text-white shadow-md shadow-orange-600/20 animate-pulse">
+              <i data-lucide="globe" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-2">
+              <h3 class="text-xl font-bold text-slate-900" data-key="downWeb">Demo Web Browser</h3>
+              <p class="text-slate-650 text-xs font-medium leading-relaxed" data-key="downWebDesc">
+                Jalankan aplikasi kasir langsung di browser Anda sekarang untuk mencoba alur login karyawan PIN pad dan proses penjualan.
+              </p>
+            </div>
+          </div>
+          <div class="pt-8">
+            <a href="http://localhost:3000" target="_blank" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-orange-600/10 hover:shadow-orange-600/25 transition-all">
+              <span data-key="launchButton">Buka di Browser</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Integration Guides -->
+      <div class="mt-16 text-center space-x-6 text-sm flex flex-wrap justify-center gap-4">
+        <span class="text-slate-400" data-key="guideLink">Panduan Integrasi Developer:</span>
+        <a href="file:///Users/ahmadnabhaan/Documents/POSS/DANA_INTEGRATION_GUIDE.md" target="_blank" class="text-orange-600 hover:underline font-semibold">DANA QRIS Guide</a>
+        <span class="text-slate-300">|</span>
+        <a href="file:///Users/ahmadnabhaan/Documents/POSS/WEBSITE_TO_ANDROID.md" target="_blank" class="text-orange-600 hover:underline font-semibold">Android Setup</a>
+        <span class="text-slate-300">|</span>
+        <a href="file:///Users/ahmadnabhaan/Documents/POSS/WEBSITE_TO_WINDOWS.md" target="_blank" class="text-orange-600 hover:underline font-semibold">Windows Desktop</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section class="py-20 bg-slate-50 border-t border-slate-200/60">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <h2 class="text-2xl font-bold text-slate-900 mb-2" data-key="techTitle">Teknologi Hybrid yang Kokoh</h2>
+      <p class="text-slate-500 text-sm max-w-md mx-auto mb-10" data-key="techSubtitle">Arsitektur modern dan efisien yang memastikan kemudahan deployment serta konsistensi di semua platform.</p>
+      <div class="flex flex-wrap justify-center items-center gap-6 md:gap-12 opacity-65 grayscale hover:grayscale-0 transition-all duration-300">
+        <div class="font-extrabold text-lg text-slate-700">React 18</div>
+        <div class="font-extrabold text-lg text-slate-700">TypeScript</div>
+        <div class="font-extrabold text-lg text-slate-700">TailwindCSS</div>
+        <div class="font-extrabold text-lg text-slate-700">Electron</div>
+        <div class="font-extrabold text-lg text-slate-700">Capacitor</div>
+        <div class="font-extrabold text-lg text-slate-700">Supabase</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Leads Form -->
+  <section class="py-24 bg-gradient-to-br from-slate-900 to-stone-950 text-white relative overflow-hidden">
+    <div class="absolute top-0 right-1/4 w-[300px] h-[300px] bg-orange-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="max-w-4xl mx-auto px-6 relative text-center space-y-8">
+      <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight" data-key="contactTitle">Tertarik dengan Integrasi Kustom?</h2>
+      <p class="text-slate-400 text-base max-w-lg mx-auto leading-relaxed" data-key="contactSubtitle">Butuh fitur kustom, integrasi server perusahaan, atau bantuan instalasi lokal di Indonesia? Hubungi kami.</p>
+
+      <div class="max-w-md mx-auto">
+        <div id="contactSuccess" class="hidden bg-emerald-950/55 border border-emerald-500/30 text-emerald-400 p-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2">
+          <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i>
+          <span data-key="contactSuccess">Terima kasih! Kami akan segera menghubungi Anda.</span>
+        </div>
+        <form id="contactForm" onsubmit="submitForm(event)" class="flex flex-col sm:flex-row gap-3">
+          <input
+            type="email"
+            required
+            id="contactEmail"
+            placeholder="Masukkan email bisnis Anda"
+            class="flex-1 px-4 py-3 bg-white/10 hover:bg-white/[0.15] border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-white placeholder-slate-450 text-sm transition-all"
+          />
+          <button
+            type="submit"
+            class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-orange-600/10 hover:shadow-orange-600/20 cursor-pointer"
+            data-key="contactButton"
+          >
+            Kirim Permintaan
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 py-12 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-center md:text-left">
+      <div class="space-y-2 flex flex-col items-center md:items-start">
+        <div class="flex items-center gap-2">
+          <div class="w-5 h-5 bg-orange-600 rounded flex items-center justify-center">
+            <span class="text-white font-bold text-xs">P</span>
+          </div>
+          <span class="font-bold text-white text-sm">POSS</span>
+        </div>
+        <p class="max-w-xs" data-key="footerTagline">Kesederhanaan, kecepatan, dan kendali data lokal penuh untuk kemajuan bisnis Anda.</p>
+      </div>
+      <div>
+        &copy; <span id="year">2026</span> POSS. <span data-key="footerRights">Hak Cipta Dilindungi.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Page Logic / Translations Switcher -->
+  <script>
+    // Initialize Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Lucide Icons
+    lucide.createIcons();
+
+    // Translation Data
+    const translations = {
+      en: {
+        navBrand: 'POSS',
+        navFeatures: 'Features',
+        navPreview: 'Preview',
+        navDownloads: 'Downloads',
+        navDemo: 'Live Demo',
+        badge: 'Version 1.0.0 Stable',
+        heroTitle: 'A Warm, Serverless Point of Sale System',
+        heroSubtitle: 'POSS is an offline-first POS optimized for cafes, bakeries, and retail. Build for Web browsers, Android tablets, and Windows Desktop PCs.',
+        ctaDemo: 'Try Web Live Demo',
+        ctaDownload: 'Download Native Apps',
+        featuresTitle: 'Why Choose POSS?',
+        featuresSubtitle: 'Engineered for seamless local operations without server dependencies or subscription plans.',
+        featOffline: 'Offline-First Storage',
+        featOfflineDesc: 'All inventory, employee, and transaction lists are stored locally on your device. Operations continue flawlessly even during internet outages.',
+        featP2P: 'P2P Wi-Fi Syncing',
+        featP2PDesc: 'Broadcast and sync records across multiple cashier devices over your local network. True peer-to-peer syncing without cloud databases.',
+        featQris: 'DANA SNAP QRIS Ready',
+        featQrisDesc: 'Fully compliant with dynamic QRIS (Service Code 47 MPM) via DANA API integration. Instant scanning and cash-in for the Indonesian market.',
+        previewTitle: 'Explore the Interface',
+        previewSubtitle: 'A visually rich layout optimized for landscape tablet grids and standard computer monitors.',
+        tabCheckout: 'POS Cashier Grid',
+        tabInventory: 'Backoffice Inventory',
+        tabReports: 'Sales Reports & Analytics',
+        checkoutDesc: 'Intuitive sales checkout screen. Easily filter categories, manage shopping cart quantities, and trigger instant cash/QRIS checkouts.',
+        inventoryDesc: 'Full-featured inventory logs. Modify pricing, track stock thresholds, and update categories under single-row compressed database paradigms.',
+        reportsDesc: 'Interactive dashboard reports. Understand revenue trends, monitor shift history, and analyze cashier performance on beautiful vector charts.',
+        downloadTitle: 'Get Started with POSS',
+        downloadSubtitle: 'Choose the best distribution format for your business operations.',
+        downWin: 'Windows Desktop App',
+        downWinDesc: 'Packaged via Electron as a native executable. Maximized window support, persistent app states, and standalone running.',
+        downAndroid: 'Android Tablet App',
+        downAndroidDesc: 'Packaged via Capacitor. Enforced landscape orientation, touch-target optimizations, and mobile storage persistence.',
+        downWeb: 'Web Browser Demo',
+        downWebDesc: 'Launch immediately in your current browser to explore the cashier screen and simulated employee login flow.',
+        downButton: 'Download Package',
+        launchButton: 'Launch In-Browser',
+        guideLink: 'Developer Integration Guides:',
+        techTitle: 'Robust Hybrid Tech Stack',
+        techSubtitle: 'A modern, performant architecture ensuring ease of deployment and cross-platform consistency.',
+        contactTitle: 'Interested in Custom Solutions?',
+        contactSubtitle: 'Need custom features, enterprise integration, or local deployment setup in Indonesia? Drop us your email.',
+        contactButton: 'Submit Request',
+        contactSuccess: 'Thank you! We will get in touch with you shortly.',
+        footerRights: 'All rights reserved.',
+        footerTagline: 'Simplicity, speed, and absolute local control for your business operations.',
+        backofficeView: 'Dashboard Preview',
+        inventoryItem: 'Chocolate Croissant',
+        inventoryStock: '42 units left',
+        totalRevenue: 'Revenue Today',
+        activeCashier: 'Active Shift',
+        orderCount: 'Total Orders',
+        totalAmt: 'Rp 1.450.000',
+        activeCashierName: 'Ahmad Nabhaan',
+        orderCountVal: '48 transactions',
+        checkoutBtn: 'Checkout (Pay)',
+        catAll: 'All',
+        cartLabel: 'Cart / Order'
+      },
+      id: {
+        navBrand: 'POSS',
+        navFeatures: 'Fitur Utama',
+        navPreview: 'Pratinjau',
+        navDownloads: 'Unduhan',
+        navDemo: 'Coba Demo',
+        badge: 'Versi 1.0.0 Stabil',
+        heroTitle: 'Sistem Kasir (POS) Hibrida Tanpa Server',
+        heroSubtitle: 'POSS adalah aplikasi kasir offline-first yang dioptimalkan untuk kafe, toko roti, dan ritel. Berjalan di Web browser, tablet Android, dan PC Windows.',
+        ctaDemo: 'Coba Demo Live Web',
+        ctaDownload: 'Unduh Aplikasi Kasir',
+        featuresTitle: 'Mengapa Memilih POSS?',
+        featuresSubtitle: 'Dirancang untuk operasional lokal yang mulus tanpa ketergantungan server atau biaya bulanan.',
+        featOffline: 'Penyimpanan Offline-First',
+        featOfflineDesc: 'Seluruh data inventaris, karyawan, dan transaksi disimpan langsung di perangkat Anda. Penjualan tetap berjalan lancar meski internet padam.',
+        featP2P: 'Sinkronisasi Wi-Fi P2P',
+        featP2PDesc: 'Siarkan dan sinkronkan data antar perangkat kasir secara real-time di jaringan Wi-Fi lokal Anda. Peer-to-peer tanpa database cloud.',
+        featQris: 'Integrasi QRIS SNAP DANA',
+        featQrisDesc: 'Mendukung pembayaran QRIS dinamis (Service Code 47 MPM) terintegrasi dengan API DANA. Terima pembayaran digital dari dompet apa pun secara instan.',
+        previewTitle: 'Jelajahi Antarmuka Kasir',
+        previewSubtitle: 'Desain visual premium yang dioptimalkan khusus untuk layar landscape tablet dan monitor komputer.',
+        tabCheckout: 'Layar Kasir (POS Grid)',
+        tabInventory: 'Kelola Stok (Backoffice)',
+        tabReports: 'Laporan & Analitik',
+        checkoutDesc: 'Layar transaksi kasir yang intuitif. Pilih kategori produk dengan mudah, sesuaikan jumlah keranjang, dan lakukan checkout tunai atau QRIS secara cepat.',
+        inventoryDesc: 'Log inventaris yang lengkap. Ubah harga produk, atur batas minimum stok, dan update kategori dengan kompresi data berkinerja tinggi.',
+        reportsDesc: 'Laporan dashboard interaktif. Analisis tren pendapatan, pantau riwayat shift karyawan, dan lihat grafik kinerja kasir dalam satu halaman terintegrasi.',
+        downloadTitle: 'Mulai Menggunakan POSS',
+        downloadSubtitle: 'Pilih format distribusi aplikasi yang paling sesuai dengan kebutuhan operasional bisnis Anda.',
+        downWin: 'Aplikasi Windows Desktop',
+        downWinDesc: 'Dikemas melalui Electron menjadi installer native Windows (.exe). Jendela otomatis maksimal, stabil, dan berjalan offline sepenuhnya.',
+        downAndroid: 'Aplikasi Tablet Android',
+        downAndroidDesc: 'Dikemas melalui Capacitor. Orientasi landscape yang dipaksakan, tombol sentuh besar ramah jari, dan performa mulus.',
+        downWeb: 'Demo Web Browser',
+        downWebDesc: 'Jalankan aplikasi kasir langsung di browser Anda sekarang untuk mencoba alur login karyawan PIN pad dan proses penjualan.',
+        downButton: 'Unduh Aplikasi',
+        launchButton: 'Buka di Browser',
+        guideLink: 'Panduan Integrasi Developer:',
+        techTitle: 'Teknologi Hybrid yang Kokoh',
+        techSubtitle: 'Arsitektur modern dan efisien yang memastikan kemudahan deployment serta konsistensi di semua platform.',
+        contactTitle: 'Tertarik dengan Integrasi Kustom?',
+        contactSubtitle: 'Butuh fitur kustom, integrasi server perusahaan, atau bantuan instalasi lokal di Indonesia? Hubungi kami.',
+        contactButton: 'Kirim Permintaan',
+        contactSuccess: 'Terima kasih! Kami akan segera menghubungi Anda.',
+        footerRights: 'Hak Cipta Dilindungi.',
+        footerTagline: 'Kesederhanaan, kecepatan, dan kendali data lokal penuh untuk kemajuan bisnis Anda.',
+        backofficeView: 'Pratinjau Dashboard',
+        inventoryItem: 'Roti Cokelat',
+        inventoryStock: 'Sisa 42 unit',
+        totalRevenue: 'Pendapatan Hari Ini',
+        activeCashier: 'Shift Aktif',
+        orderCount: 'Jumlah Transaksi',
+        totalAmt: 'Rp 1.450.000',
+        activeCashierName: 'Ahmad Nabhaan',
+        orderCountVal: '48 transaksi',
+        checkoutBtn: 'Bayar (Checkout)',
+        catAll: 'Semua',
+        cartLabel: 'Pesanan / Cart'
+      }
+    };
+
+    let currentLang = 'id';
+
+    // Toggle Language Function
+    function toggleLanguage() {
+      currentLang = currentLang === 'id' ? 'en' : 'id';
+      
+      // Update label and page title
+      document.getElementById('langLabel').textContent = currentLang === 'id' ? 'ID 🇮🇩' : 'EN 🇬🇧';
+      document.title = currentLang === 'id' 
+        ? 'POSS - Sistem Kasir (POS) Hibrida Tanpa Server' 
+        : 'POSS - Serverless Hybrid Point of Sale System';
+      
+      const t = translations[currentLang];
+
+      // Update all elements with data-key attributes
+      document.querySelectorAll('[data-key]').forEach(el => {
+        const key = el.getAttribute('data-key');
+        if (t[key]) {
+          el.textContent = t[key];
+        }
+      });
+
+      // Update form placeholders
+      const emailInput = document.getElementById('contactEmail');
+      if (emailInput) {
+        emailInput.placeholder = currentLang === 'id' ? 'Masukkan email bisnis Anda' : 'Enter your business email';
+      }
+    }
+
+    // Bind Toggle Button Click
+    document.getElementById('langBtn').addEventListener('click', toggleLanguage);
+
+    // Tab Switching Logic
+    function switchTab(tabId) {
+      // Hide all panels
+      document.querySelectorAll('.tab-pane').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+
+      // Show target panel
+      document.getElementById('tabContent-' + tabId).classList.remove('hidden');
+
+      // Update button highlights
+      const tabs = ['checkout', 'inventory', 'reports'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tabBtn-' + t);
+        if (t === tabId) {
+          btn.className = "px-6 py-3 rounded-full text-sm font-bold transition-all shadow-sm cursor-pointer bg-orange-600 text-white shadow-md";
+        } else {
+          btn.className = "px-6 py-3 rounded-full text-sm font-bold transition-all shadow-sm cursor-pointer bg-white border border-slate-200 text-slate-600 hover:border-orange-500/50";
+        }
+      });
+    }
+
+    // Lead Form Submit Handler
+    function submitForm(e) {
+      e.preventDefault();
+      const emailVal = document.getElementById('contactEmail').value;
+      if (emailVal) {
+        document.getElementById('contactForm').classList.add('hidden');
+        document.getElementById('contactSuccess').classList.remove('hidden');
+        
+        setTimeout(() => {
+          document.getElementById('contactForm').classList.remove('hidden');
+          document.getElementById('contactSuccess').classList.add('hidden');
+          document.getElementById('contactEmail').value = '';
+        }, 5000);
+      }
+    }
+  </script>
+</body>
+</html>
